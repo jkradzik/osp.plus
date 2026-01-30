@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -31,7 +35,18 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Delete(security: "is_granted('ROLE_ADMIN')"),
     ],
     order: ['lastName' => 'ASC', 'firstName' => 'ASC'],
+    paginationItemsPerPage: 20,
 )]
+#[ApiFilter(SearchFilter::class, properties: [
+    'firstName' => 'partial',
+    'lastName' => 'partial',
+    'pesel' => 'partial',
+    'email' => 'exact',
+    'phone' => 'partial',
+    'membershipStatus' => 'exact',
+])]
+#[ApiFilter(DateFilter::class, properties: ['birthDate', 'joinDate', 'deathDate'])]
+#[ApiFilter(OrderFilter::class, properties: ['lastName', 'firstName', 'joinDate', 'birthDate', 'createdAt'])]
 class Member
 {
     #[ORM\Id]
@@ -93,6 +108,9 @@ class Member
     #[ORM\Column]
     public private(set) \DateTimeImmutable $createdAt;
 
+    #[ORM\Column(nullable: true)]
+    public private(set) ?\DateTimeImmutable $updatedAt = null;
+
     /** @var Collection<int, MembershipFee> */
     #[ORM\OneToMany(targetEntity: MembershipFee::class, mappedBy: 'member', cascade: ['persist', 'remove'], orphanRemoval: true)]
     public private(set) Collection $membershipFees;
@@ -124,5 +142,11 @@ class Member
     public function onPrePersist(): void
     {
         $this->createdAt = new \DateTimeImmutable();
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

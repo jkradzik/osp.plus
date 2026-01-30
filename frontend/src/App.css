@@ -54,8 +54,6 @@ body {
 .app-main {
   flex: 1;
   padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
   width: 100%;
 }
 
@@ -70,12 +68,16 @@ body {
 /* Login */
 .login-container {
   max-width: 400px;
-  margin: 4rem auto;
+  width: 100%;
   padding: 2rem;
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .login-container h1 {
@@ -328,8 +330,6 @@ tr:hover {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
-  max-width: 600px;
-  margin: 0 auto;
 }
 
 .dashboard-card {
@@ -355,6 +355,67 @@ tr:hover {
 .dashboard-card p {
   color: #666;
   font-size: 0.875rem;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  min-width: 150px;
+}
+
+.search-input {
+  min-width: 200px;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: #c41e3a;
+}
+
+.filter-info {
+  color: #666;
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.more-items {
+  font-style: italic;
+  opacity: 0.7;
 }
 
 /* Overdue summary */
@@ -387,7 +448,6 @@ tr:hover {
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  max-width: 800px;
 }
 
 .member-form h2 {

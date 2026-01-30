@@ -34,8 +34,9 @@ class ApiService {
       headers['Authorization'] = `Bearer ${this.#token}`;
     }
 
-    if (options.body && !(options.body instanceof FormData)) {
-      headers['Content-Type'] = 'application/json';
+    // Only set default Content-Type if not already specified in options
+    if (options.body && !(options.body instanceof FormData) && !options.headers?.['Content-Type']) {
+      headers['Content-Type'] = 'application/ld+json';
     }
 
     const response = await fetch(`${API_URL}${endpoint}`, {
@@ -66,7 +67,7 @@ class ApiService {
     const response = await fetch(`${API_URL}/api/login_check`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: email, password }),
+      body: JSON.stringify({ email, password }),
     });
 
     if (!response.ok) {
@@ -83,9 +84,20 @@ class ApiService {
   }
 
   // Members
-  async getMembers() {
-    const data = await this.#request('/api/members');
-    return data.member || data['hydra:member'] || [];
+  async getMembers(params = {}) {
+    const queryString = this.#buildQueryString(params);
+    const data = await this.#request(`/api/members${queryString}`);
+    return {
+      items: data.member || data['hydra:member'] || [],
+      totalItems: data['hydra:totalItems'] || data.totalItems || 0,
+      view: data['hydra:view'] || data.view || null,
+    };
+  }
+
+  #buildQueryString(params) {
+    const filtered = Object.entries(params).filter(([_, v]) => v !== '' && v !== null && v !== undefined);
+    if (filtered.length === 0) return '';
+    return '?' + filtered.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
   }
 
   async getMember(id) {
@@ -95,6 +107,7 @@ class ApiService {
   async createMember(member) {
     return this.#request('/api/members', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/ld+json' },
       body: JSON.stringify(member),
     });
   }
@@ -114,9 +127,14 @@ class ApiService {
   }
 
   // Membership Fees
-  async getFees() {
-    const data = await this.#request('/api/membership_fees');
-    return data.member || data['hydra:member'] || [];
+  async getFees(params = {}) {
+    const queryString = this.#buildQueryString(params);
+    const data = await this.#request(`/api/membership_fees${queryString}`);
+    return {
+      items: data.member || data['hydra:member'] || [],
+      totalItems: data['hydra:totalItems'] || data.totalItems || 0,
+      view: data['hydra:view'] || data.view || null,
+    };
   }
 
   async validateOverdueFees() {

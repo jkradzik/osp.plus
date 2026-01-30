@@ -142,3 +142,5 @@ Produce **ONLY** the final task plan in Markdown, in English.
 
 
 Answer in polish.
+
+Plany zapisuj zawsze w folderze @.ai/plan

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\NumericFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -26,7 +30,14 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Patch(),
     ],
     order: ['year' => 'DESC'],
+    paginationItemsPerPage: 20,
 )]
+#[ApiFilter(SearchFilter::class, properties: [
+    'member' => 'exact',
+    'status' => 'exact',
+])]
+#[ApiFilter(NumericFilter::class, properties: ['year'])]
+#[ApiFilter(OrderFilter::class, properties: ['year', 'status', 'amount', 'paidAt', 'createdAt'])]
 class MembershipFee
 {
     #[ORM\Id]
@@ -56,6 +67,9 @@ class MembershipFee
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     public ?\DateTimeInterface $paidAt = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    public ?string $notes = null;
 
     #[ORM\Column]
     public private(set) \DateTimeImmutable $createdAt;
