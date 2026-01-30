@@ -1,222 +1,163 @@
-# osp.plus
+# OSP.plus
 
-Centrum operacyjne dla Ochotniczych Strazy Pozarnych.
+System zarządzania jednostką Ochotniczej Straży Pożarnej.
 
-## O projekcie
+## Stack technologiczny
 
-**osp.plus** to platforma SaaS do zarzadzania jednostkami OSP. System integruje wszystkie aspekty funkcjonowania jednostki - od ewidencji czlonkow, przez dokumentacje akcji ratowniczych, po zarzadzanie finansami i wynajmem remizy.
-
-### Problem
-
-Jednostki OSP zmagaja sie z rosnacym obciazeniem administracyjnym. Dane o czlonkach, szkoleniach, skladkach i majatku sa rozproszone miedzy Excelami, zeszytami i wiedza kilku osob z zarzadu. Brak jednego zrodla prawdy prowadzi do utraty informacji przy zmianach w zarzadzie i trudnosci w generowaniu raportow.
-
-### Rozwiazanie
-
-Jedna aplikacja, ktora laczy wszystko:
-- Ewidencja czlonkow z przypomnieniami o badaniach i szkoleniach
-- Rozliczanie skladek czlonkowskich
-- Ewidencja odznaczen i wyposazenia osobistego
-- Dokumentacja akcji ratowniczych
-- Zarzadzanie finansami jednostki
-- Kalendarz wynajmu remizy (wyroznik konkurencyjny)
-
-## Tech Stack
-
-| Warstwa | Technologia |
-|---------|-------------|
-| Backend | PHP 8.3, Symfony 7, API Platform 3 |
-| Frontend | React 18, Vite 5, TypeScript |
-| Baza danych | PostgreSQL 16 |
-| Auth | JWT (lexik/jwt-authentication-bundle) |
-| Dev environment | DDEV, Docker |
-| CI/CD | GitHub Actions |
-
-### Architektura
-
-```
-┌─────────────────────────────────────────┐
-│           Frontend (React)              │
-│   Admin Panel / Public Pages / Mobile   │
-└───────────────┬─────────────────────────┘
-                │ REST API (JSON)
-                ▼
-┌─────────────────────────────────────────┐
-│      Backend (Symfony + API Platform)   │
-│         JWT Authentication              │
-└───────────────┬─────────────────────────┘
-                │
-                ▼
-┌─────────────────────────────────────────┐
-│           PostgreSQL 16                 │
-└─────────────────────────────────────────┘
-```
-
-**Kluczowe zasady:**
-- API-first - backend to czyste REST API
-- JWT stateless - brak sesji na serwerze
-- Single source of truth - jeden backend dla web i mobile
+- **Backend:** PHP 8.4, Symfony 8, API Platform 4
+- **Frontend:** React 19, Vite 7, React Router 7
+- **Baza danych:** PostgreSQL 17
+- **Auth:** JWT (lexik/jwt-authentication-bundle)
+- **Dev:** DDEV
 
 ## Wymagania
 
-- PHP 8.3+
-- Node.js 20+
-- PostgreSQL 16+
-- Composer 2+
-- DDEV (zalecane) lub Docker
+- Docker + DDEV
+- Node.js 22+
+- PHP 8.4+ (dla lokalnego developmentu bez DDEV)
 
-## Instalacja
-
-### 1. Klonowanie repozytorium
+## Instalacja (Development)
 
 ```bash
-git clone https://github.com/your-username/osp-plus.git
-cd osp-plus
+# Klonowanie
+git clone https://github.com/your-repo/osp_plus.git
+cd osp_plus
+
+# Start DDEV
+ddev start
+
+# Backend - instalacja zależności
+ddev composer install
+
+# Backend - generowanie kluczy JWT
+ddev exec "cd backend && php bin/console lexik:jwt:generate-keypair"
+
+# Backend - migracje
+ddev exec "cd backend && php bin/console doctrine:migrations:migrate --no-interaction"
+
+# Backend - dane testowe
+ddev exec "cd backend && php bin/console doctrine:fixtures:load --no-interaction"
+
+# Frontend - instalacja zależności (opcjonalnie, Vite startuje automatycznie)
+ddev exec "cd frontend && npm install"
 ```
 
-### 2. Uruchomienie przez DDEV (zalecane)
+## Uruchomienie
 
 ```bash
 ddev start
-ddev composer install -d backend
-ddev exec -d backend php bin/console lexik:jwt:generate-keypair
-ddev exec -d backend php bin/console doctrine:migrations:migrate --no-interaction
-ddev exec -d backend php bin/console doctrine:fixtures:load --no-interaction
-cd frontend && npm install && npm run dev
 ```
 
-### 3. Alternatywnie - Docker Compose
+Aplikacja dostępna pod:
+- **Frontend:** https://osp-plus.ddev.site:5173
+- **API:** https://osp-plus.ddev.site/api
+- **API Docs:** https://osp-plus.ddev.site/api/docs
+
+## Dane testowe
+
+| Email | Hasło | Rola |
+|-------|-------|------|
+| admin@osp.plus | admin123 | ROLE_ADMIN |
+| user@osp.plus | user123 | ROLE_USER |
+
+## Testy
 
 ```bash
-docker-compose up -d
-cd backend && composer install
-php bin/console lexik:jwt:generate-keypair
-php bin/console doctrine:migrations:migrate
-cd ../frontend && npm install && npm run dev
+# Unit testy backend
+ddev exec "cd backend && vendor/bin/phpunit --testdox"
+
+# Lint frontend
+ddev exec "cd frontend && npm run lint"
+
+# Build frontend
+ddev exec "cd frontend && npm run build"
+```
+
+## API Endpoints
+
+### Auth
+```
+POST /api/login_check    # Login, zwraca JWT token
+```
+
+### Members (CRUD)
+```
+GET    /api/members          # Lista członków
+GET    /api/members/{id}     # Szczegóły członka
+POST   /api/members          # Dodaj członka
+PATCH  /api/members/{id}     # Edytuj członka
+DELETE /api/members/{id}     # Usuń członka (ROLE_ADMIN)
+```
+
+### Membership Fees
+```
+GET    /api/membership_fees          # Lista składek
+GET    /api/membership_fees/{id}     # Szczegóły składki
+POST   /api/membership_fees          # Dodaj składkę
+PATCH  /api/membership_fees/{id}     # Edytuj składkę
+```
+
+### Custom (Business Logic)
+```
+POST /api/membership-fees/validate-overdue  # Oznacz zaległe składki
+GET  /api/membership-fees/overdue           # Lista zaległych składek
+```
+
+## Logika biznesowa
+
+### Walidacja składek
+
+Składka jest oznaczana jako **zaległa** gdy:
+- Status = `unpaid`
+- Aktualna data > 31 marca roku składki
+
+Wyjątki (nie podlegają walidacji):
+- Status = `exempt` (zwolniony)
+- Status = `not_applicable` (nie dotyczy)
+
+## Deploy (Production)
+
+```bash
+# Skopiuj i skonfiguruj zmienne środowiskowe
+cp .env.prod.example .env.prod
+
+# Edytuj .env.prod - ustaw hasła i sekrety
+nano .env.prod
+
+# Build i uruchomienie
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+
+# Migracje
+docker compose -f docker-compose.prod.yml exec backend php bin/console doctrine:migrations:migrate --no-interaction
+
+# Generowanie kluczy JWT (pierwszy raz)
+docker compose -f docker-compose.prod.yml exec backend php bin/console lexik:jwt:generate-keypair
 ```
 
 ## Struktura projektu
 
 ```
 osp_plus/
-├── backend/                 # Symfony 7 API
+├── backend/                 # Symfony API
 │   ├── src/
+│   │   ├── Controller/      # Custom controllers
 │   │   ├── Entity/          # Doctrine entities
 │   │   ├── Enum/            # PHP enums
 │   │   ├── Repository/      # Doctrine repositories
-│   │   ├── Service/         # Business logic
-│   │   └── Controller/      # Custom API endpoints
-│   ├── config/              # Symfony configuration
-│   └── tests/               # PHPUnit tests
+│   │   └── Service/         # Business logic
+│   ├── tests/               # PHPUnit tests
+│   └── config/              # Symfony config
 ├── frontend/                # React SPA
-│   └── src/
-│       ├── components/      # React components
-│       ├── pages/           # Page components
-│       ├── services/        # API client
-│       └── context/         # React context (auth)
-├── .ai/                     # Project documentation
-│   ├── prd.md               # Product Requirements
-│   ├── tech-stack.md        # Tech stack details
-│   ├── plan.md              # Implementation plan
-│   ├── faza-poc.md          # POC phase details
-│   └── faza-mvp.md          # MVP phase details
-└── .github/
-    └── workflows/
-        └── ci.yml           # GitHub Actions
+│   ├── src/
+│   │   ├── components/      # React components
+│   │   ├── context/         # React context (Auth)
+│   │   └── services/        # API service
+│   └── dist/                # Build output
+├── docker/                  # Docker configs
+├── .ddev/                   # DDEV config
+└── .github/workflows/       # CI/CD
 ```
-
-## Uruchomienie
-
-### Backend (API)
-
-```bash
-cd backend
-symfony server:start
-# lub przez DDEV
-ddev exec -d backend symfony server:start
-```
-
-API dostepne pod: `http://localhost:8000/api`
-
-Dokumentacja API (OpenAPI): `http://localhost:8000/api/docs`
-
-### Frontend
-
-```bash
-cd frontend
-npm run dev
-```
-
-Aplikacja dostepna pod: `http://localhost:5173`
-
-## Testowanie
-
-### Backend
-
-```bash
-cd backend
-vendor/bin/phpunit
-# lub
-vendor/bin/phpunit --testdox
-```
-
-### Analiza statyczna
-
-```bash
-cd backend
-vendor/bin/phpstan analyse src --level=5
-```
-
-## API Endpoints
-
-### Autentykacja
-
-```
-POST /api/login_check    # Logowanie, zwraca JWT token
-```
-
-### Czlonkowie (CRUD)
-
-```
-GET    /api/members          # Lista czlonkow
-GET    /api/members/{id}     # Szczegoly czlonka
-POST   /api/members          # Dodaj czlonka
-PUT    /api/members/{id}     # Edytuj czlonka
-DELETE /api/members/{id}     # Usun czlonka
-```
-
-### Skladki
-
-```
-GET    /api/membership_fees              # Lista skladek
-POST   /api/membership_fees              # Dodaj skladke
-PUT    /api/membership_fees/{id}         # Edytuj skladke
-POST   /api/membership-fees/validate-overdue  # Oznacz zalegle
-GET    /api/membership-fees/overdue      # Lista zaleglych
-```
-
-## Roadmapa
-
-- [x] **POC** - Auth, CRUD czlonkow, walidacja skladek, testy, CI/CD
-- [ ] **MVP** - Pelna ewidencja, odznaczenia, wyposazenie, finanse
-- [ ] **Growth** - Multi-tenant, akcje ratownicze, panel gminy
-- [ ] **Scale** - Modul wynajmow, mobile app, integracje
-
-## Dokumentacja
-
-Szczegolowa dokumentacja projektu znajduje sie w katalogu `.ai/`:
-
-| Plik | Opis |
-|------|------|
-| `prd.md` | Product Requirements Document |
-| `tech-stack.md` | Szczegoly stacku technologicznego |
-| `plan.md` | Plan implementacji |
-| `faza-poc.md` | Wymagania fazy POC |
-| `faza-mvp.md` | Wymagania fazy MVP |
 
 ## Licencja
 
-Projekt prywatny. Wszelkie prawa zastrzezone.
-
----
-
-**osp.plus** - Nowoczesne narzedzie dla Ochotniczych Strazy Pozarnych
+MIT

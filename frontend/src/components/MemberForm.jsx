@@ -36,9 +36,10 @@ export function MemberForm() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isEdit) {
+    if (id) {
       loadMember();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const loadMember = async () => {
