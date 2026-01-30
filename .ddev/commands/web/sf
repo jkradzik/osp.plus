@@ -1,0 +1,7 @@
+#!/bin/bash
+ ## Description: Run Symfony console commands
+ ## Usage: sf [command]
+ ## Example: ddev sf cache:clear
+
+ cd /var/www/html/backend
+ php bin/console "$@"
