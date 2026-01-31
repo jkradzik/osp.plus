@@ -239,6 +239,57 @@ class ApiService {
     const data = await this.#request('/api/equipment_dictionaries?order[name]=asc');
     return data.member || data['hydra:member'] || [];
   }
+
+  // Financial Records
+  async getFinancialRecords(params = {}) {
+    const queryString = this.#buildQueryString(params);
+    const data = await this.#request(`/api/financial_records${queryString}`);
+    return {
+      items: data.member || data['hydra:member'] || [],
+      totalItems: data['hydra:totalItems'] || data.totalItems || 0,
+      view: data['hydra:view'] || data.view || null,
+    };
+  }
+
+  async getFinancialRecord(id) {
+    return this.#request(`/api/financial_records/${id}`);
+  }
+
+  async createFinancialRecord(record) {
+    return this.#request('/api/financial_records', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/ld+json' },
+      body: JSON.stringify(record),
+    });
+  }
+
+  async updateFinancialRecord(id, record) {
+    return this.#request(`/api/financial_records/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+      body: JSON.stringify(record),
+    });
+  }
+
+  async deleteFinancialRecord(id) {
+    return this.#request(`/api/financial_records/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getFinancialCategories(type = null) {
+    const params = type ? `?type=${type}` : '';
+    const data = await this.#request(`/api/financial_categories${params}`);
+    return data.member || data['hydra:member'] || [];
+  }
+
+  async getFinancialSummary(year = null, month = null) {
+    const params = [];
+    if (year) params.push(`year=${year}`);
+    if (month) params.push(`month=${month}`);
+    const queryString = params.length > 0 ? '?' + params.join('&') : '';
+    return this.#request(`/api/financial-summary${queryString}`);
+  }
 }
 
 export const api = new ApiService();

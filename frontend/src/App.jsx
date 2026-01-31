@@ -7,6 +7,7 @@ import { MemberForm } from './components/MemberForm';
 import { FeeList } from './components/FeeList';
 import { DecorationList } from './components/DecorationList';
 import { EquipmentList } from './components/EquipmentList';
+import { FinancialList } from './components/FinancialList';
 import './App.css';
 
 function ProtectedRoute({ children }) {
@@ -41,6 +42,10 @@ function Dashboard() {
           <h3>Wyposażenie</h3>
           <p>Wyposażenie osobiste członków</p>
         </a>
+        <a href="/finances" className="dashboard-card">
+          <h3>Finanse</h3>
+          <p>Ewidencja przychodów i kosztów</p>
+        </a>
       </div>
     </div>
   );
@@ -72,6 +77,7 @@ function AppRoutes() {
         <Route path="fees" element={<FeeList />} />
         <Route path="decorations" element={<DecorationList />} />
         <Route path="equipment" element={<EquipmentList />} />
+        <Route path="finances" element={<FinancialList />} />
       </Route>
     </Routes>
   );

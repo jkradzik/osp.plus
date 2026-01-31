@@ -21,6 +21,7 @@ export function Layout() {
           <Link to="/fees">Składki</Link>
           <Link to="/decorations">Odznaczenia</Link>
           <Link to="/equipment">Wyposażenie</Link>
+          <Link to="/finances">Finanse</Link>
         </nav>
         <button onClick={handleLogout} className="btn btn-small">
           Wyloguj

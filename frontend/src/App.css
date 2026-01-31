@@ -442,6 +442,72 @@ tr:hover {
   color: #856404;
 }
 
+/* Financial summary */
+.financial-summary {
+  margin-bottom: 1.5rem;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.summary-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.summary-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.summary-card .amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.summary-card.income {
+  border-left: 4px solid #28a745;
+}
+
+.summary-card.income .amount {
+  color: #155724;
+}
+
+.summary-card.expense {
+  border-left: 4px solid #dc3545;
+}
+
+.summary-card.expense .amount {
+  color: #721c24;
+}
+
+.summary-card.balance {
+  border-left: 4px solid #007bff;
+}
+
+.summary-card.balance.positive .amount {
+  color: #155724;
+}
+
+.summary-card.balance.negative .amount {
+  color: #721c24;
+}
+
+@media (max-width: 768px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Member form */
 .member-form {
   background: white;
