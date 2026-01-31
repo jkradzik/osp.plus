@@ -2,6 +2,25 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Badge } from './ui/badge';
+import { Alert, AlertDescription } from './ui/alert';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 const STATUS_LABELS = {
   active: 'Aktywny',
@@ -13,8 +32,18 @@ const STATUS_LABELS = {
   deceased: 'Zmarły',
 };
 
+const STATUS_VARIANTS = {
+  active: 'success',
+  inactive: 'muted',
+  honorary: 'info',
+  supporting: 'warning',
+  youth: 'info',
+  removed: 'destructive',
+  deceased: 'destructive',
+};
+
 const STATUS_OPTIONS = [
-  { value: '', label: 'Wszystkie statusy' },
+  { value: 'all', label: 'Wszystkie statusy' },
   { value: 'active', label: 'Aktywny' },
   { value: 'inactive', label: 'Nieaktywny' },
   { value: 'honorary', label: 'Honorowy' },
@@ -36,9 +65,18 @@ export function MemberList() {
 
   // Filters
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const loadMembers = useCallback(async () => {
     try {
@@ -48,10 +86,10 @@ export function MemberList() {
         itemsPerPage,
       };
 
-      if (search) {
-        params.lastName = search;
+      if (debouncedSearch) {
+        params.lastName = debouncedSearch;
       }
-      if (statusFilter) {
+      if (statusFilter && statusFilter !== 'all') {
         params.membershipStatus = statusFilter;
       }
 
@@ -63,7 +101,7 @@ export function MemberList() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, page]);
+  }, [debouncedSearch, statusFilter, page]);
 
   useEffect(() => {
     loadMembers();
@@ -72,7 +110,7 @@ export function MemberList() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter]);
+  }, [debouncedSearch, statusFilter]);
 
   const handleDelete = async (id, name) => {
     if (!confirm(`Czy na pewno chcesz usunąć członka ${name}?`)) {
@@ -87,127 +125,131 @@ export function MemberList() {
     }
   };
 
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-  };
-
-  const handleStatusChange = (e) => {
-    setStatusFilter(e.target.value);
-  };
-
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   return (
-    <div className="member-list">
-      <div className="list-header">
-        <h2>Ewidencja członków</h2>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Ewidencja członków</h2>
         {canAdd && (
-          <Link to="/members/new" className="btn btn-primary">
-            + Dodaj członka
-          </Link>
+          <Button asChild>
+            <Link to="/members/new">+ Dodaj członka</Link>
+          </Button>
         )}
       </div>
 
-      <div className="filters">
-        <div className="filter-group">
-          <input
-            type="text"
-            placeholder="Szukaj po nazwisku..."
-            value={search}
-            onChange={handleSearchChange}
-            className="search-input"
-          />
-        </div>
-        <div className="filter-group">
-          <select value={statusFilter} onChange={handleStatusChange}>
+      <div className="flex flex-wrap gap-4 items-center mb-6">
+        <Input
+          type="text"
+          placeholder="Szukaj po nazwisku..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-64"
+        />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Wybierz status" />
+          </SelectTrigger>
+          <SelectContent>
             {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-        </div>
-        <div className="filter-info">
+          </SelectContent>
+        </Select>
+        <span className="text-muted-foreground text-sm ml-auto">
           Znaleziono: {totalItems} {totalItems === 1 ? 'członek' : 'członków'}
-        </div>
+        </span>
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {loading ? (
-        <div className="loading">Ładowanie...</div>
+        <div className="text-center py-8 text-muted-foreground">Ładowanie...</div>
       ) : (
         <>
-          <table>
-            <thead>
-              <tr>
-                <th>Imię i nazwisko</th>
-                <th>PESEL</th>
-                <th>Status</th>
-                <th>Data wstąpienia</th>
-                <th>Funkcja</th>
-                <th>Akcje</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((member) => (
-                <tr key={member.id}>
-                  <td>{member.fullName}</td>
-                  <td>{member.pesel}</td>
-                  <td>
-                    <span className={`status-badge status-${member.membershipStatus}`}>
-                      {STATUS_LABELS[member.membershipStatus] || member.membershipStatus}
-                    </span>
-                  </td>
-                  <td>{new Date(member.joinDate).toLocaleDateString('pl-PL')}</td>
-                  <td>{member.boardPosition || '-'}</td>
-                  <td className="actions">
-                    {canEdit && (
-                      <Link to={`/members/${member.id}/edit`} className="btn btn-small">
-                        Edytuj
-                      </Link>
-                    )}
-                    {canAdd && (
-                      <button
-                        onClick={() => handleDelete(member.id, member.fullName)}
-                        className="btn btn-small btn-danger"
-                      >
-                        Usuń
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Imię i nazwisko</TableHead>
+                  <TableHead>PESEL</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data wstąpienia</TableHead>
+                  <TableHead>Funkcja</TableHead>
+                  <TableHead>Akcje</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {members.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell className="font-medium">{member.fullName}</TableCell>
+                    <TableCell>{member.pesel}</TableCell>
+                    <TableCell>
+                      <Badge variant={STATUS_VARIANTS[member.membershipStatus] || 'secondary'}>
+                        {STATUS_LABELS[member.membershipStatus] || member.membershipStatus}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{new Date(member.joinDate).toLocaleDateString('pl-PL')}</TableCell>
+                    <TableCell>{member.boardPosition || '-'}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {canEdit && (
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to={`/members/${member.id}/edit`}>Edytuj</Link>
+                          </Button>
+                        )}
+                        {canAdd && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDelete(member.id, member.fullName)}
+                          >
+                            Usuń
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {members.length === 0 && (
-            <p className="empty-state">
-              {search || statusFilter
+            <p className="text-center py-8 text-muted-foreground">
+              {debouncedSearch || statusFilter !== 'all'
                 ? 'Brak członków spełniających kryteria wyszukiwania.'
                 : 'Brak członków w ewidencji.'}
             </p>
           )}
 
           {totalPages > 1 && (
-            <div className="pagination">
-              <button
+            <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t">
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="btn btn-small"
               >
                 &laquo; Poprzednia
-              </button>
-              <span className="pagination-info">
+              </Button>
+              <span className="text-sm text-muted-foreground">
                 Strona {page} z {totalPages}
               </span>
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="btn btn-small"
               >
                 Następna &raquo;
-              </button>
+              </Button>
             </div>
           )}
         </>

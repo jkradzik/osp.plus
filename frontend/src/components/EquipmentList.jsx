@@ -1,6 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Alert, AlertDescription } from './ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 const CATEGORY_LABELS = {
   clothing: 'Odzież',
@@ -20,7 +40,7 @@ export function EquipmentList() {
   const [error, setError] = useState('');
 
   // Filters
-  const [memberFilter, setMemberFilter] = useState('');
+  const [memberFilter, setMemberFilter] = useState('all');
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -41,7 +61,7 @@ export function EquipmentList() {
       setLoading(true);
       const params = { page, itemsPerPage };
 
-      if (memberFilter) {
+      if (memberFilter && memberFilter !== 'all') {
         params.member = memberFilter;
       }
 
@@ -121,173 +141,192 @@ export function EquipmentList() {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   return (
-    <div className="equipment-list">
-      <div className="list-header">
-        <h2>Wyposażenie osobiste</h2>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Wyposażenie osobiste</h2>
         {canEdit && (
-          <button onClick={() => setShowForm(!showForm)} className="btn btn-primary">
+          <Button onClick={() => setShowForm(!showForm)}>
             {showForm ? 'Anuluj' : 'Przypisz wyposażenie'}
-          </button>
+          </Button>
         )}
       </div>
 
-      {error && <div className="error-message">{error}</div>}
-
-      {showForm && canEdit && (
-        <div className="member-form" style={{ marginBottom: '1.5rem' }}>
-          <h3>Nowe wyposażenie</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Członek *</label>
-                <select
-                  value={formData.member}
-                  onChange={(e) => setFormData({ ...formData, member: e.target.value })}
-                  required
-                >
-                  <option value="">Wybierz członka</option>
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.fullName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Typ wyposażenia *</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => handleTypeChange(e.target.value)}
-                  required
-                >
-                  <option value="">Wybierz typ</option>
-                  {equipmentTypes.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name} ({CATEGORY_LABELS[t.category]})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Data wydania *</label>
-                <input
-                  type="date"
-                  value={formData.issuedAt}
-                  onChange={(e) => setFormData({ ...formData, issuedAt: e.target.value })}
-                  required
-                />
-              </div>
-              {selectedType?.hasSizes && (
-                <div className="form-group">
-                  <label>Rozmiar</label>
-                  <input
-                    type="text"
-                    value={formData.size}
-                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                    placeholder="np. L, XL, 43"
-                  />
-                </div>
-              )}
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Numer seryjny</label>
-                <input
-                  type="text"
-                  value={formData.serialNumber}
-                  onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                />
-              </div>
-              <div className="form-group">
-                <label>Notatki</label>
-                <input
-                  type="text"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="form-actions">
-              <button type="submit" className="btn btn-primary">
-                Zapisz
-              </button>
-            </div>
-          </form>
-        </div>
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      <div className="filters">
-        <div className="filter-group">
-          <select value={memberFilter} onChange={(e) => setMemberFilter(e.target.value)}>
-            <option value="">Wszyscy członkowie</option>
+      {showForm && canEdit && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Nowe wyposażenie</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Członek *</Label>
+                  <Select
+                    value={formData.member}
+                    onValueChange={(value) => setFormData({ ...formData, member: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Wybierz członka" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {members.map((m) => (
+                        <SelectItem key={m.id} value={String(m.id)}>
+                          {m.fullName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Typ wyposażenia *</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={handleTypeChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Wybierz typ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {equipmentTypes.map((t) => (
+                        <SelectItem key={t.id} value={String(t.id)}>
+                          {t.name} ({CATEGORY_LABELS[t.category]})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Data wydania *</Label>
+                  <Input
+                    type="date"
+                    value={formData.issuedAt}
+                    onChange={(e) => setFormData({ ...formData, issuedAt: e.target.value })}
+                    required
+                  />
+                </div>
+                {selectedType?.hasSizes && (
+                  <div className="space-y-2">
+                    <Label>Rozmiar</Label>
+                    <Input
+                      type="text"
+                      value={formData.size}
+                      onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                      placeholder="np. L, XL, 43"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Numer seryjny</Label>
+                  <Input
+                    type="text"
+                    value={formData.serialNumber}
+                    onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Notatki</Label>
+                  <Input
+                    type="text"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit">Zapisz</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex flex-wrap gap-4 items-center mb-6">
+        <Select value={memberFilter} onValueChange={setMemberFilter}>
+          <SelectTrigger className="w-64">
+            <SelectValue placeholder="Wybierz członka" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Wszyscy członkowie</SelectItem>
             {members.map((m) => (
-              <option key={m.id} value={m.id}>
+              <SelectItem key={m.id} value={String(m.id)}>
                 {m.fullName}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-        </div>
-        <div className="filter-info">
+          </SelectContent>
+        </Select>
+        <span className="text-muted-foreground text-sm ml-auto">
           Znaleziono: {totalItems} {totalItems === 1 ? 'element' : 'elementów'}
-        </div>
+        </span>
       </div>
 
       {loading ? (
-        <div className="loading">Ładowanie...</div>
+        <div className="text-center py-8 text-muted-foreground">Ładowanie...</div>
       ) : (
         <>
-          <table>
-            <thead>
-              <tr>
-                <th>Data wydania</th>
-                <th>Członek</th>
-                <th>Wyposażenie</th>
-                <th>Rozmiar</th>
-                <th>Nr seryjny</th>
-              </tr>
-            </thead>
-            <tbody>
-              {equipment.map((e) => (
-                <tr key={e.id || e['@id']}>
-                  <td>{new Date(e.issuedAt).toLocaleDateString('pl-PL')}</td>
-                  <td>{getMemberName(e.member)}</td>
-                  <td>{getTypeName(e.type)}</td>
-                  <td>{e.size || '-'}</td>
-                  <td>{e.serialNumber || '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data wydania</TableHead>
+                  <TableHead>Członek</TableHead>
+                  <TableHead>Wyposażenie</TableHead>
+                  <TableHead>Rozmiar</TableHead>
+                  <TableHead>Nr seryjny</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {equipment.map((e) => (
+                  <TableRow key={e.id || e['@id']}>
+                    <TableCell>{new Date(e.issuedAt).toLocaleDateString('pl-PL')}</TableCell>
+                    <TableCell className="font-medium">{getMemberName(e.member)}</TableCell>
+                    <TableCell>{getTypeName(e.type)}</TableCell>
+                    <TableCell>{e.size || '-'}</TableCell>
+                    <TableCell>{e.serialNumber || '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {equipment.length === 0 && (
-            <p className="empty-state">
-              {memberFilter
+            <p className="text-center py-8 text-muted-foreground">
+              {memberFilter !== 'all'
                 ? 'Brak wyposażenia dla wybranego członka.'
                 : 'Brak wyposażenia w systemie.'}
             </p>
           )}
 
           {totalPages > 1 && (
-            <div className="pagination">
-              <button
+            <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t">
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="btn btn-small"
               >
                 &laquo; Poprzednia
-              </button>
-              <span className="pagination-info">
+              </Button>
+              <span className="text-sm text-muted-foreground">
                 Strona {page} z {totalPages}
               </span>
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="btn btn-small"
               >
                 Następna &raquo;
-              </button>
+              </Button>
             </div>
           )}
         </>

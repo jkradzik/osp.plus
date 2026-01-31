@@ -1,6 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { AlertTriangle } from 'lucide-react';
 
 const STATUS_LABELS = {
   unpaid: 'Nieopłacona',
@@ -10,16 +29,16 @@ const STATUS_LABELS = {
   not_applicable: 'Nie dotyczy',
 };
 
-const STATUS_CLASSES = {
+const STATUS_VARIANTS = {
   unpaid: 'warning',
   paid: 'success',
-  overdue: 'danger',
+  overdue: 'destructive',
   exempt: 'info',
   not_applicable: 'muted',
 };
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'Wszystkie statusy' },
+  { value: 'all', label: 'Wszystkie statusy' },
   { value: 'unpaid', label: 'Nieopłacona' },
   { value: 'paid', label: 'Opłacona' },
   { value: 'overdue', label: 'Zaległa' },
@@ -30,7 +49,7 @@ const STATUS_OPTIONS = [
 // Generate year options (current year back to 2020)
 const currentYear = new Date().getFullYear();
 const YEAR_OPTIONS = [
-  { value: '', label: 'Wszystkie lata' },
+  { value: 'all', label: 'Wszystkie lata' },
   ...Array.from({ length: currentYear - 2019 }, (_, i) => ({
     value: String(currentYear - i),
     label: String(currentYear - i),
@@ -43,6 +62,7 @@ export function FeeList() {
 
   const [fees, setFees] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
+  const [members, setMembers] = useState([]);
   const [overdueFees, setOverdueFees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [validating, setValidating] = useState(false);
@@ -50,8 +70,8 @@ export function FeeList() {
   const [message, setMessage] = useState('');
 
   // Filters
-  const [yearFilter, setYearFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [yearFilter, setYearFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -63,20 +83,22 @@ export function FeeList() {
         itemsPerPage,
       };
 
-      if (yearFilter) {
+      if (yearFilter && yearFilter !== 'all') {
         params.year = yearFilter;
       }
-      if (statusFilter) {
+      if (statusFilter && statusFilter !== 'all') {
         params.status = statusFilter;
       }
 
-      const [feesData, overdueData] = await Promise.all([
+      const [feesData, overdueData, membersData] = await Promise.all([
         api.getFees(params),
         api.getOverdueFees(),
+        api.getMembers({ itemsPerPage: 500 }),
       ]);
 
       setFees(feesData.items);
       setTotalItems(feesData.totalItems);
+      setMembers(membersData.items);
       setOverdueFees(overdueData.items || []);
     } catch (err) {
       setError(err.message);
@@ -108,129 +130,160 @@ export function FeeList() {
     }
   };
 
+  const getMemberName = (memberIri) => {
+    if (!memberIri) return '-';
+    if (typeof memberIri === 'object' && memberIri.fullName) {
+      return memberIri.fullName;
+    }
+    const id = String(memberIri).split('/').pop();
+    const member = members.find((m) => String(m.id) === id);
+    return member ? member.fullName : memberIri;
+  };
+
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   return (
-    <div className="fee-list">
-      <div className="list-header">
-        <h2>Składki członkowskie</h2>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Składki członkowskie</h2>
         {canEdit && (
-          <button
+          <Button
             onClick={handleValidateOverdue}
             disabled={validating}
-            className="btn btn-warning"
+            variant="warning"
           >
             {validating ? 'Sprawdzanie...' : 'Oznacz zaległe składki'}
-          </button>
+          </Button>
         )}
       </div>
 
-      {message && <div className="success-message">{message}</div>}
-      {error && <div className="error-message">{error}</div>}
+      {message && (
+        <Alert className="mb-4">
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
+      )}
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-      <div className="filters">
-        <div className="filter-group">
-          <select value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}>
+      <div className="flex flex-wrap gap-4 items-center mb-6">
+        <Select value={yearFilter} onValueChange={setYearFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Wybierz rok" />
+          </SelectTrigger>
+          <SelectContent>
             {YEAR_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-        </div>
-        <div className="filter-group">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Wybierz status" />
+          </SelectTrigger>
+          <SelectContent>
             {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-        </div>
-        <div className="filter-info">
+          </SelectContent>
+        </Select>
+        <span className="text-muted-foreground text-sm ml-auto">
           Znaleziono: {totalItems} {totalItems === 1 ? 'składka' : 'składek'}
-        </div>
+        </span>
       </div>
 
-      {overdueFees.length > 0 && !statusFilter && !yearFilter && (
-        <div className="overdue-summary">
-          <h3>Zaległe składki ({overdueFees.length})</h3>
-          <ul>
-            {overdueFees.slice(0, 5).map((fee) => (
-              <li key={fee.id}>
-                <strong>{fee.member_name}</strong> - {fee.year} rok - {fee.amount} zł
-              </li>
-            ))}
-            {overdueFees.length > 5 && (
-              <li className="more-items">...i {overdueFees.length - 5} więcej</li>
-            )}
-          </ul>
-        </div>
+      {overdueFees.length > 0 && statusFilter === 'all' && yearFilter === 'all' && (
+        <Alert variant="warning" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Zaległe składki ({overdueFees.length})</AlertTitle>
+          <AlertDescription>
+            <ul className="mt-2 space-y-1">
+              {overdueFees.slice(0, 5).map((fee) => (
+                <li key={fee.id}>
+                  <strong>{fee.member_name}</strong> - {fee.year} rok - {fee.amount} zł
+                </li>
+              ))}
+              {overdueFees.length > 5 && (
+                <li className="italic opacity-70">...i {overdueFees.length - 5} więcej</li>
+              )}
+            </ul>
+          </AlertDescription>
+        </Alert>
       )}
 
       {loading ? (
-        <div className="loading">Ładowanie...</div>
+        <div className="text-center py-8 text-muted-foreground">Ładowanie...</div>
       ) : (
         <>
-          <h3>Wszystkie składki</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Rok</th>
-                <th>Członek</th>
-                <th>Kwota</th>
-                <th>Status</th>
-                <th>Data opłacenia</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fees.map((fee) => (
-                <tr key={fee.id || fee['@id']}>
-                  <td>{fee.year}</td>
-                  <td>{fee.member?.fullName || fee.member}</td>
-                  <td>{fee.amount} zł</td>
-                  <td>
-                    <span className={`status-badge status-${STATUS_CLASSES[fee.status] || 'default'}`}>
-                      {STATUS_LABELS[fee.status] || fee.status}
-                    </span>
-                  </td>
-                  <td>
-                    {fee.paidAt
-                      ? new Date(fee.paidAt).toLocaleDateString('pl-PL')
-                      : '-'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <h3 className="text-lg font-semibold mb-4">Wszystkie składki</h3>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Rok</TableHead>
+                  <TableHead>Członek</TableHead>
+                  <TableHead>Kwota</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data opłacenia</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {fees.map((fee) => (
+                  <TableRow key={fee.id || fee['@id']}>
+                    <TableCell className="font-medium">{fee.year}</TableCell>
+                    <TableCell>{getMemberName(fee.member)}</TableCell>
+                    <TableCell>{fee.amount} zł</TableCell>
+                    <TableCell>
+                      <Badge variant={STATUS_VARIANTS[fee.status] || 'secondary'}>
+                        {STATUS_LABELS[fee.status] || fee.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {fee.paidAt
+                        ? new Date(fee.paidAt).toLocaleDateString('pl-PL')
+                        : '-'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {fees.length === 0 && (
-            <p className="empty-state">
-              {yearFilter || statusFilter
+            <p className="text-center py-8 text-muted-foreground">
+              {yearFilter !== 'all' || statusFilter !== 'all'
                 ? 'Brak składek spełniających kryteria wyszukiwania.'
                 : 'Brak składek w systemie.'}
             </p>
           )}
 
           {totalPages > 1 && (
-            <div className="pagination">
-              <button
+            <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t">
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="btn btn-small"
               >
                 &laquo; Poprzednia
-              </button>
-              <span className="pagination-info">
+              </Button>
+              <span className="text-sm text-muted-foreground">
                 Strona {page} z {totalPages}
               </span>
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="btn btn-small"
               >
                 Następna &raquo;
-              </button>
+              </Button>
             </div>
           )}
         </>

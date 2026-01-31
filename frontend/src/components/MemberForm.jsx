@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Button } from './ui/button';
+import { Alert, AlertDescription } from './ui/alert';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 const MEMBERSHIP_STATUSES = [
   { value: 'active', label: 'Aktywny' },
@@ -69,6 +82,10 @@ export function MemberForm() {
     setMember((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleStatusChange = (value) => {
+    setMember((prev) => ({ ...prev, membershipStatus: value }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -96,155 +113,163 @@ export function MemberForm() {
     }
   };
 
-  if (loading) return <div className="loading">Ładowanie...</div>;
+  if (loading) {
+    return <div className="text-center py-8 text-muted-foreground">Ładowanie...</div>;
+  }
 
   return (
-    <div className="member-form">
-      <h2>{isEdit ? 'Edycja członka' : 'Nowy członek'}</h2>
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>{isEdit ? 'Edycja członka' : 'Nowy członek'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-      <form onSubmit={handleSubmit}>
-        {error && <div className="error-message">{error}</div>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">Imię *</Label>
+              <Input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={member.firstName}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="firstName">Imię *</label>
-            <input
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Nazwisko *</Label>
+              <Input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={member.lastName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pesel">PESEL *</Label>
+              <Input
+                type="text"
+                id="pesel"
+                name="pesel"
+                value={member.pesel}
+                onChange={handleChange}
+                pattern="\d{11}"
+                maxLength={11}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="membershipStatus">Status *</Label>
+              <Select value={member.membershipStatus} onValueChange={handleStatusChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Wybierz status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MEMBERSHIP_STATUSES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="birthDate">Data urodzenia *</Label>
+              <Input
+                type="date"
+                id="birthDate"
+                name="birthDate"
+                value={member.birthDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="joinDate">Data wstąpienia *</Label>
+              <Input
+                type="date"
+                id="joinDate"
+                name="joinDate"
+                value={member.joinDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                type="email"
+                id="email"
+                name="email"
+                value={member.email}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Telefon</Label>
+              <Input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={member.phone}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Adres</Label>
+            <Textarea
+              id="address"
+              name="address"
+              value={member.address}
+              onChange={handleChange}
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="boardPosition">Funkcja w zarządzie</Label>
+            <Input
               type="text"
-              id="firstName"
-              name="firstName"
-              value={member.firstName}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="lastName">Nazwisko *</label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              value={member.lastName}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="pesel">PESEL *</label>
-            <input
-              type="text"
-              id="pesel"
-              name="pesel"
-              value={member.pesel}
-              onChange={handleChange}
-              pattern="\d{11}"
-              maxLength={11}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="membershipStatus">Status *</label>
-            <select
-              id="membershipStatus"
-              name="membershipStatus"
-              value={member.membershipStatus}
-              onChange={handleChange}
-              required
-            >
-              {MEMBERSHIP_STATUSES.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="birthDate">Data urodzenia *</label>
-            <input
-              type="date"
-              id="birthDate"
-              name="birthDate"
-              value={member.birthDate}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="joinDate">Data wstąpienia *</label>
-            <input
-              type="date"
-              id="joinDate"
-              name="joinDate"
-              value={member.joinDate}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={member.email}
+              id="boardPosition"
+              name="boardPosition"
+              value={member.boardPosition}
               onChange={handleChange}
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="phone">Telefon</label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={member.phone}
-              onChange={handleChange}
-            />
+          <div className="flex justify-end gap-4 pt-4">
+            <Button type="button" variant="outline" onClick={() => navigate('/members')}>
+              Anuluj
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Zapisywanie...' : 'Zapisz'}
+            </Button>
           </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="address">Adres</label>
-          <textarea
-            id="address"
-            name="address"
-            value={member.address}
-            onChange={handleChange}
-            rows={2}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="boardPosition">Funkcja w zarządzie</label>
-          <input
-            type="text"
-            id="boardPosition"
-            name="boardPosition"
-            value={member.boardPosition}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="form-actions">
-          <button type="button" onClick={() => navigate('/members')} className="btn">
-            Anuluj
-          </button>
-          <button type="submit" disabled={saving} className="btn btn-primary">
-            {saving ? 'Zapisywanie...' : 'Zapisz'}
-          </button>
-        </div>
-      </form>
-    </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

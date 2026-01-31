@@ -8,7 +8,7 @@ import { FeeList } from './components/FeeList';
 import { DecorationList } from './components/DecorationList';
 import { EquipmentList } from './components/EquipmentList';
 import { FinancialList } from './components/FinancialList';
-import './App.css';
+import { Card, CardHeader, CardTitle, CardDescription } from './components/ui/card';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -28,30 +28,52 @@ function FinanceRoute({ children }) {
 function Dashboard() {
   const { getRoleName, canAccessFinances } = useAuth();
   return (
-    <div className="dashboard">
-      <h2>Panel główny</h2>
-      <p>Witaj w systemie OSP.plus! Jesteś zalogowany jako {getRoleName()}.</p>
-      <div className="dashboard-links">
-        <Link to="/members" className="dashboard-card">
-          <h3>Członkowie</h3>
-          <p>Zarządzaj ewidencją członków</p>
+    <div className="text-center">
+      <h2 className="text-2xl font-bold mb-2">Panel główny</h2>
+      <p className="text-muted-foreground mb-8">
+        Witaj w systemie OSP.plus! Jesteś zalogowany jako {getRoleName()}.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <Link to="/members" className="no-underline">
+          <Card className="h-full transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+            <CardHeader>
+              <CardTitle className="text-primary">Członkowie</CardTitle>
+              <CardDescription>Zarządzaj ewidencją członków</CardDescription>
+            </CardHeader>
+          </Card>
         </Link>
-        <Link to="/fees" className="dashboard-card">
-          <h3>Składki</h3>
-          <p>Przeglądaj i waliduj składki</p>
+        <Link to="/fees" className="no-underline">
+          <Card className="h-full transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+            <CardHeader>
+              <CardTitle className="text-primary">Składki</CardTitle>
+              <CardDescription>Przeglądaj i waliduj składki</CardDescription>
+            </CardHeader>
+          </Card>
         </Link>
-        <Link to="/decorations" className="dashboard-card">
-          <h3>Odznaczenia</h3>
-          <p>Ewidencja odznaczeń członków</p>
+        <Link to="/decorations" className="no-underline">
+          <Card className="h-full transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+            <CardHeader>
+              <CardTitle className="text-primary">Odznaczenia</CardTitle>
+              <CardDescription>Ewidencja odznaczeń członków</CardDescription>
+            </CardHeader>
+          </Card>
         </Link>
-        <Link to="/equipment" className="dashboard-card">
-          <h3>Wyposażenie</h3>
-          <p>Wyposażenie osobiste członków</p>
+        <Link to="/equipment" className="no-underline">
+          <Card className="h-full transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+            <CardHeader>
+              <CardTitle className="text-primary">Wyposażenie</CardTitle>
+              <CardDescription>Wyposażenie osobiste członków</CardDescription>
+            </CardHeader>
+          </Card>
         </Link>
         {canAccessFinances() && (
-          <Link to="/finances" className="dashboard-card">
-            <h3>Finanse</h3>
-            <p>Ewidencja przychodów i kosztów</p>
+          <Link to="/finances" className="no-underline">
+            <Card className="h-full transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer">
+              <CardHeader>
+                <CardTitle className="text-primary">Finanse</CardTitle>
+                <CardDescription>Ewidencja przychodów i kosztów</CardDescription>
+              </CardHeader>
+            </Card>
           </Link>
         )}
       </div>

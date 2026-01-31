@@ -1,25 +1,47 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Badge } from './ui/badge';
+import { Alert, AlertDescription } from './ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 const TYPE_LABELS = {
   income: 'Przychód',
   expense: 'Koszt',
 };
 
-const TYPE_OPTIONS = [
-  { value: '', label: 'Wszystkie typy' },
-  { value: 'income', label: 'Przychody' },
-  { value: 'expense', label: 'Koszty' },
-];
-
 const currentYear = new Date().getFullYear();
 const YEAR_OPTIONS = [
-  { value: '', label: 'Wszystkie lata' },
+  { value: 'all', label: 'Wszystkie lata' },
   ...Array.from({ length: 5 }, (_, i) => ({
     value: String(currentYear - i),
     label: String(currentYear - i),
   })),
+];
+
+const TYPE_OPTIONS = [
+  { value: 'all', label: 'Wszystkie typy' },
+  { value: 'income', label: 'Przychody' },
+  { value: 'expense', label: 'Koszty' },
 ];
 
 export function FinancialList() {
@@ -34,7 +56,7 @@ export function FinancialList() {
   const [error, setError] = useState('');
 
   // Filters
-  const [typeFilter, setTypeFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
   const [yearFilter, setYearFilter] = useState(String(currentYear));
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
@@ -56,11 +78,11 @@ export function FinancialList() {
       setLoading(true);
       const params = { page, itemsPerPage };
 
-      if (typeFilter) {
+      if (typeFilter && typeFilter !== 'all') {
         params.type = typeFilter;
       }
 
-      if (yearFilter) {
+      if (yearFilter && yearFilter !== 'all') {
         const startDate = `${yearFilter}-01-01`;
         const endDate = `${yearFilter}-12-31`;
         params['recordedAt[after]'] = startDate;
@@ -70,7 +92,7 @@ export function FinancialList() {
       const [recordsData, categoriesData, summaryData] = await Promise.all([
         api.getFinancialRecords(params),
         api.getFinancialCategories(),
-        api.getFinancialSummary(yearFilter || null),
+        api.getFinancialSummary(yearFilter !== 'all' ? yearFilter : null),
       ]);
 
       setRecords(recordsData.items);
@@ -146,204 +168,236 @@ export function FinancialList() {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   return (
-    <div className="financial-list">
-      <div className="list-header">
-        <h2>Ewidencja finansowa</h2>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Ewidencja finansowa</h2>
         {canEdit && (
-          <button onClick={() => setShowForm(!showForm)} className="btn btn-primary">
+          <Button onClick={() => setShowForm(!showForm)}>
             {showForm ? 'Anuluj' : 'Dodaj operację'}
-          </button>
+          </Button>
         )}
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       {summary && (
-        <div className="financial-summary">
-          <div className="summary-cards">
-            <div className="summary-card income">
-              <h4>Przychody</h4>
-              <p className="amount">{formatAmount(summary.totalIncome)}</p>
-            </div>
-            <div className="summary-card expense">
-              <h4>Koszty</h4>
-              <p className="amount">{formatAmount(summary.totalExpense)}</p>
-            </div>
-            <div className={`summary-card balance ${parseFloat(summary.balance) >= 0 ? 'positive' : 'negative'}`}>
-              <h4>Bilans</h4>
-              <p className="amount">{formatAmount(summary.balance)}</p>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="border-l-4 border-l-green-600">
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground uppercase mb-1">Przychody</p>
+              <p className="text-2xl font-bold text-green-700">{formatAmount(summary.totalIncome)}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-red-600">
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground uppercase mb-1">Koszty</p>
+              <p className="text-2xl font-bold text-red-700">{formatAmount(summary.totalExpense)}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-blue-600">
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground uppercase mb-1">Bilans</p>
+              <p className={`text-2xl font-bold ${parseFloat(summary.balance) >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                {formatAmount(summary.balance)}
+              </p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
-      {showForm && (
-        <div className="member-form" style={{ marginBottom: '1.5rem' }}>
-          <h3>Nowa operacja finansowa</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Typ *</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  required
-                >
-                  <option value="income">Przychód</option>
-                  <option value="expense">Koszt</option>
-                </select>
+      {showForm && canEdit && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Nowa operacja finansowa</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Typ *</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value) => setFormData({ ...formData, type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="income">Przychód</SelectItem>
+                      <SelectItem value="expense">Koszt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Kategoria *</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Wybierz kategorię" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {formCategories.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="form-group">
-                <label>Kategoria *</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  required
-                >
-                  <option value="">Wybierz kategorię</option>
-                  {formCategories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Kwota (PLN) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data operacji *</Label>
+                  <Input
+                    type="date"
+                    value={formData.recordedAt}
+                    onChange={(e) => setFormData({ ...formData, recordedAt: e.target.value })}
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Kwota (PLN) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Data operacji *</label>
-                <input
-                  type="date"
-                  value={formData.recordedAt}
-                  onChange={(e) => setFormData({ ...formData, recordedAt: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Nr dokumentu</label>
-                <input
+              <div className="space-y-2">
+                <Label>Nr dokumentu</Label>
+                <Input
                   type="text"
                   value={formData.documentNumber}
                   onChange={(e) => setFormData({ ...formData, documentNumber: e.target.value })}
                   placeholder="np. FV/2024/0123"
                 />
               </div>
-            </div>
-            <div className="form-group">
-              <label>Opis *</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                required
-                rows={3}
-              />
-            </div>
-            <div className="form-actions">
-              <button type="submit" className="btn btn-primary">
-                Zapisz
-              </button>
-            </div>
-          </form>
-        </div>
+              <div className="space-y-2">
+                <Label>Opis *</Label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  required
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit">Zapisz</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="filters">
-        <div className="filter-group">
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+      <div className="flex flex-wrap gap-4 items-center mb-6">
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Typ operacji" />
+          </SelectTrigger>
+          <SelectContent>
             {TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-        </div>
-        <div className="filter-group">
-          <select value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}>
+          </SelectContent>
+        </Select>
+        <Select value={yearFilter} onValueChange={setYearFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Wybierz rok" />
+          </SelectTrigger>
+          <SelectContent>
             {YEAR_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
+              <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-        </div>
-        <div className="filter-info">
+          </SelectContent>
+        </Select>
+        <span className="text-muted-foreground text-sm ml-auto">
           Znaleziono: {totalItems} {totalItems === 1 ? 'operacja' : 'operacji'}
-        </div>
+        </span>
       </div>
 
       {loading ? (
-        <div className="loading">Ładowanie...</div>
+        <div className="text-center py-8 text-muted-foreground">Ładowanie...</div>
       ) : (
         <>
-          <table>
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Typ</th>
-                <th>Kategoria</th>
-                <th>Opis</th>
-                <th>Nr dokumentu</th>
-                <th style={{ textAlign: 'right' }}>Kwota</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((r) => (
-                <tr key={r.id || r['@id']}>
-                  <td>{new Date(r.recordedAt).toLocaleDateString('pl-PL')}</td>
-                  <td>
-                    <span className={`status-badge status-${r.type === 'income' ? 'success' : 'danger'}`}>
-                      {TYPE_LABELS[r.type]}
-                    </span>
-                  </td>
-                  <td>{getCategoryName(r.category)}</td>
-                  <td>{r.description?.substring(0, 50)}{r.description?.length > 50 ? '...' : ''}</td>
-                  <td>{r.documentNumber || '-'}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold', color: r.type === 'income' ? '#155724' : '#721c24' }}>
-                    {r.type === 'income' ? '+' : '-'}{formatAmount(r.amount)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Typ</TableHead>
+                  <TableHead>Kategoria</TableHead>
+                  <TableHead>Opis</TableHead>
+                  <TableHead>Nr dokumentu</TableHead>
+                  <TableHead className="text-right">Kwota</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {records.map((r) => (
+                  <TableRow key={r.id || r['@id']}>
+                    <TableCell>{new Date(r.recordedAt).toLocaleDateString('pl-PL')}</TableCell>
+                    <TableCell>
+                      <Badge variant={r.type === 'income' ? 'success' : 'destructive'}>
+                        {TYPE_LABELS[r.type]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{getCategoryName(r.category)}</TableCell>
+                    <TableCell>
+                      {r.description?.substring(0, 50)}
+                      {r.description?.length > 50 ? '...' : ''}
+                    </TableCell>
+                    <TableCell>{r.documentNumber || '-'}</TableCell>
+                    <TableCell className={`text-right font-bold ${r.type === 'income' ? 'text-green-700' : 'text-red-700'}`}>
+                      {r.type === 'income' ? '+' : '-'}{formatAmount(r.amount)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {records.length === 0 && (
-            <p className="empty-state">
-              {typeFilter || yearFilter ? 'Brak operacji spełniających kryteria.' : 'Brak operacji finansowych.'}
+            <p className="text-center py-8 text-muted-foreground">
+              {typeFilter !== 'all' || yearFilter !== 'all'
+                ? 'Brak operacji spełniających kryteria.'
+                : 'Brak operacji finansowych.'}
             </p>
           )}
 
           {totalPages > 1 && (
-            <div className="pagination">
-              <button
+            <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t">
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="btn btn-small"
               >
                 &laquo; Poprzednia
-              </button>
-              <span className="pagination-info">
+              </Button>
+              <span className="text-sm text-muted-foreground">
                 Strona {page} z {totalPages}
               </span>
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="btn btn-small"
               >
                 Następna &raquo;
-              </button>
+              </Button>
             </div>
           )}
         </>
