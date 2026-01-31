@@ -66,8 +66,8 @@ class MembershipFeeApiTest extends ApiTestCase
         $members = $membersResponse->toArray();
         $memberId = $members['member'][0]['id'];
 
-        // Use a year that likely doesn't exist for this member (within 1900-2100 validation range)
-        $uniqueYear = 2050 + random_int(0, 49);
+        // Use a unique year that doesn't exist for this member
+        $uniqueYear = $this->getUniqueYear();
 
         $response = $this->authenticatedRequest('POST', '/api/membership_fees', [
             'headers' => ['Content-Type' => 'application/ld+json'],
@@ -128,7 +128,7 @@ class MembershipFeeApiTest extends ApiTestCase
         $members = $membersResponse->toArray();
         $memberId = $members['member'][0]['id'];
 
-        $uniqueYear = 2060 + random_int(0, 9);
+        $uniqueYear = $this->getUniqueYear();
 
         // Create first fee
         $this->authenticatedRequest('POST', '/api/membership_fees', [
@@ -166,7 +166,7 @@ class MembershipFeeApiTest extends ApiTestCase
         $memberId = $members['member'][0]['id'];
 
         // Create a fee to patch
-        $uniqueYear = 2070 + random_int(0, 9);
+        $uniqueYear = $this->getUniqueYear();
 
         $createResponse = $this->authenticatedRequest('POST', '/api/membership_fees', [
             'headers' => ['Content-Type' => 'application/ld+json'],

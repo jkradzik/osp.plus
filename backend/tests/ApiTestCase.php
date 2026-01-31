@@ -15,6 +15,7 @@ abstract class ApiTestCase extends BaseApiTestCase
 
     private static ?string $adminToken = null;
     private static ?string $userToken = null;
+    private static int $uniqueYearCounter = 0;
 
     protected function setUp(): void
     {
@@ -129,5 +130,18 @@ abstract class ApiTestCase extends BaseApiTestCase
         // Reset tokens cache between test classes
         self::$adminToken = null;
         self::$userToken = null;
+    }
+
+    /**
+     * Generate a unique year for testing (within valid 1900-2100 range).
+     * Uses years 2030-2079 to avoid conflicts with fixture data (2023-2026).
+     * Combines timestamp with counter to ensure uniqueness across test runs.
+     */
+    protected function getUniqueYear(): int
+    {
+        self::$uniqueYearCounter++;
+        // Use microseconds + counter to generate unique year in 2030-2079 range
+        $microPart = (int)(microtime(true) * 1000) % 50;
+        return 2030 + (($microPart + self::$uniqueYearCounter) % 50);
     }
 }
