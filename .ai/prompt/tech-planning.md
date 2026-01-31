@@ -34,7 +34,6 @@ The referenced files define:
 - **WHAT** exists or is planned (`plan.md`)
 - **WHY** it exists (`prd.md`)
 - **HOW** it should be built (`tech-stack.md`)
-- **IN WHICH PHASE** it is allowed to exist (`faza-mvp.md` or `faza-poc.md`)
 
 You must treat these documents as authoritative constraints.
 
