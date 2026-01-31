@@ -58,18 +58,26 @@ export function LoginForm() {
         </button>
       </form>
 
-      <p className="demo-credentials">
-        Demo:
-        <ul>
-          <li>admin@osp.plus / admin123 - Administrator</li>
-          <li>prezes@osp.plus / prezes123 - Prezes</li>
-          <li>skarbnik@osp.plus / skarbnik123 - Skarbnik</li>
-          <li>naczelnik@osp.plus / naczelnik123 - Naczelnik</li>
-          <li>user@osp.plus / user123 - Druh</li>
-        </ul>
-
-
-      </p>
+      <div className="demo-credentials">
+        <p>Szybkie logowanie demo:</p>
+        <div className="demo-buttons">
+          <button type="button" onClick={() => { setEmail('admin@osp.plus'); setPassword('admin123'); }} className="demo-btn admin">
+            Administrator
+          </button>
+          <button type="button" onClick={() => { setEmail('prezes@osp.plus'); setPassword('prezes123'); }} className="demo-btn prezes">
+            Prezes
+          </button>
+          <button type="button" onClick={() => { setEmail('skarbnik@osp.plus'); setPassword('skarbnik123'); }} className="demo-btn skarbnik">
+            Skarbnik
+          </button>
+          <button type="button" onClick={() => { setEmail('naczelnik@osp.plus'); setPassword('naczelnik123'); }} className="demo-btn naczelnik">
+            Naczelnik
+          </button>
+          <button type="button" onClick={() => { setEmail('user@osp.plus'); setPassword('user123'); }} className="demo-btn user">
+            Druh
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

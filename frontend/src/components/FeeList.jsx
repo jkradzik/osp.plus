@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const STATUS_LABELS = {
   unpaid: 'Nieopłacona',
@@ -37,6 +38,9 @@ const YEAR_OPTIONS = [
 ];
 
 export function FeeList() {
+  const { hasRole } = useAuth();
+  const canEdit = hasRole('ROLE_ADMIN') || hasRole('ROLE_SKARBNIK');
+
   const [fees, setFees] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [overdueFees, setOverdueFees] = useState([]);
@@ -110,13 +114,15 @@ export function FeeList() {
     <div className="fee-list">
       <div className="list-header">
         <h2>Składki członkowskie</h2>
-        <button
-          onClick={handleValidateOverdue}
-          disabled={validating}
-          className="btn btn-warning"
-        >
-          {validating ? 'Sprawdzanie...' : 'Oznacz zaległe składki'}
-        </button>
+        {canEdit && (
+          <button
+            onClick={handleValidateOverdue}
+            disabled={validating}
+            className="btn btn-warning"
+          >
+            {validating ? 'Sprawdzanie...' : 'Oznacz zaległe składki'}
+          </button>
+        )}
       </div>
 
       {message && <div className="success-message">{message}</div>}

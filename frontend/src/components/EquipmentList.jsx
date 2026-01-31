@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORY_LABELS = {
   clothing: 'Odzież',
@@ -8,6 +9,9 @@ const CATEGORY_LABELS = {
 };
 
 export function EquipmentList() {
+  const { hasRole } = useAuth();
+  const canEdit = hasRole('ROLE_ADMIN') || hasRole('ROLE_NACZELNIK');
+
   const [equipment, setEquipment] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [members, setMembers] = useState([]);
@@ -120,14 +124,16 @@ export function EquipmentList() {
     <div className="equipment-list">
       <div className="list-header">
         <h2>Wyposażenie osobiste</h2>
-        <button onClick={() => setShowForm(!showForm)} className="btn btn-primary">
-          {showForm ? 'Anuluj' : 'Przypisz wyposażenie'}
-        </button>
+        {canEdit && (
+          <button onClick={() => setShowForm(!showForm)} className="btn btn-primary">
+            {showForm ? 'Anuluj' : 'Przypisz wyposażenie'}
+          </button>
+        )}
       </div>
 
       {error && <div className="error-message">{error}</div>}
 
-      {showForm && (
+      {showForm && canEdit && (
         <div className="member-form" style={{ marginBottom: '1.5rem' }}>
           <h3>Nowe wyposażenie</h3>
           <form onSubmit={handleSubmit}>

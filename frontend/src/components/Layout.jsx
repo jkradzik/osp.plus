@@ -2,7 +2,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export function Layout() {
-  const { logout } = useAuth();
+  const { logout, user, getRoleName, canAccessFinances } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -21,11 +21,14 @@ export function Layout() {
           <Link to="/fees">Składki</Link>
           <Link to="/decorations">Odznaczenia</Link>
           <Link to="/equipment">Wyposażenie</Link>
-          <Link to="/finances">Finanse</Link>
+          {canAccessFinances() && <Link to="/finances">Finanse</Link>}
         </nav>
-        <button onClick={handleLogout} className="btn btn-small">
-          Wyloguj
-        </button>
+        <div className="header-user">
+          <span className="user-info">{user?.email} ({getRoleName()})</span>
+          <button onClick={handleLogout} className="btn btn-small">
+            Wyloguj
+          </button>
+        </div>
       </header>
 
       <main className="app-main">

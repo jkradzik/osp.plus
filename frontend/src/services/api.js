@@ -24,6 +24,32 @@ class ApiService {
     return !!this.#token;
   }
 
+  getUserInfo() {
+    if (!this.#token) return null;
+    try {
+      const payload = this.#token.split('.')[1];
+      const decoded = JSON.parse(atob(payload));
+      return {
+        email: decoded.username || decoded.email,
+        roles: decoded.roles || [],
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  hasRole(role) {
+    const user = this.getUserInfo();
+    if (!user) return false;
+    return user.roles.includes(role);
+  }
+
+  canAccessFinances() {
+    const user = this.getUserInfo();
+    if (!user) return false;
+    return user.roles.some(r => ['ROLE_ADMIN', 'ROLE_PREZES', 'ROLE_SKARBNIK', 'ROLE_NACZELNIK'].includes(r));
+  }
+
   async #request(endpoint, options = {}) {
     const headers = {
       'Accept': 'application/ld+json',

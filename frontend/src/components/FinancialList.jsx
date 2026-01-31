@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const TYPE_LABELS = {
   income: 'Przychód',
@@ -22,6 +23,9 @@ const YEAR_OPTIONS = [
 ];
 
 export function FinancialList() {
+  const { hasRole } = useAuth();
+  const canEdit = hasRole('ROLE_ADMIN') || hasRole('ROLE_SKARBNIK');
+
   const [records, setRecords] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [categories, setCategories] = useState([]);
@@ -145,9 +149,11 @@ export function FinancialList() {
     <div className="financial-list">
       <div className="list-header">
         <h2>Ewidencja finansowa</h2>
-        <button onClick={() => setShowForm(!showForm)} className="btn btn-primary">
-          {showForm ? 'Anuluj' : 'Dodaj operację'}
-        </button>
+        {canEdit && (
+          <button onClick={() => setShowForm(!showForm)} className="btn btn-primary">
+            {showForm ? 'Anuluj' : 'Dodaj operację'}
+          </button>
+        )}
       </div>
 
       {error && <div className="error-message">{error}</div>}

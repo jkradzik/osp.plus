@@ -51,6 +51,18 @@ body {
   opacity: 1;
 }
 
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.user-info {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
 .app-main {
   flex: 1;
   padding: 2rem;
@@ -97,8 +109,86 @@ body {
 
 .demo-credentials {
   margin-top: 1.5rem;
-  color: #999;
+  text-align: center;
+}
+
+.demo-credentials p {
+  color: #666;
   font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.demo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.demo-btn {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f8f9fa;
+  color: #333;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+
+.demo-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.demo-btn.admin {
+  border-color: #c41e3a;
+  color: #c41e3a;
+}
+
+.demo-btn.admin:hover {
+  background: #c41e3a;
+  color: white;
+}
+
+.demo-btn.prezes {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.demo-btn.prezes:hover {
+  background: #28a745;
+  color: white;
+}
+
+.demo-btn.skarbnik {
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.demo-btn.skarbnik:hover {
+  background: #007bff;
+  color: white;
+}
+
+.demo-btn.naczelnik {
+  border-color: #fd7e14;
+  color: #fd7e14;
+}
+
+.demo-btn.naczelnik:hover {
+  background: #fd7e14;
+  color: white;
+}
+
+.demo-btn.user {
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+.demo-btn.user:hover {
+  background: #6c757d;
+  color: white;
 }
 
 /* Forms */

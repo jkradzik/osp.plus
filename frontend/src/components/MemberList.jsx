@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const STATUS_LABELS = {
   active: 'Aktywny',
@@ -24,6 +25,10 @@ const STATUS_OPTIONS = [
 ];
 
 export function MemberList() {
+  const { hasRole } = useAuth();
+  const canAdd = hasRole('ROLE_ADMIN');
+  const canEdit = hasRole('ROLE_ADMIN') || hasRole('ROLE_PREZES') || hasRole('ROLE_NACZELNIK');
+
   const [members, setMembers] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -96,9 +101,11 @@ export function MemberList() {
     <div className="member-list">
       <div className="list-header">
         <h2>Ewidencja członków</h2>
-        <Link to="/members/new" className="btn btn-primary">
-          + Dodaj członka
-        </Link>
+        {canAdd && (
+          <Link to="/members/new" className="btn btn-primary">
+            + Dodaj członka
+          </Link>
+        )}
       </div>
 
       <div className="filters">
@@ -155,15 +162,19 @@ export function MemberList() {
                   <td>{new Date(member.joinDate).toLocaleDateString('pl-PL')}</td>
                   <td>{member.boardPosition || '-'}</td>
                   <td className="actions">
-                    <Link to={`/members/${member.id}/edit`} className="btn btn-small">
-                      Edytuj
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(member.id, member.fullName)}
-                      className="btn btn-small btn-danger"
-                    >
-                      Usuń
-                    </button>
+                    {canEdit && (
+                      <Link to={`/members/${member.id}/edit`} className="btn btn-small">
+                        Edytuj
+                      </Link>
+                    )}
+                    {canAdd && (
+                      <button
+                        onClick={() => handleDelete(member.id, member.fullName)}
+                        className="btn btn-small btn-danger"
+                      >
+                        Usuń
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

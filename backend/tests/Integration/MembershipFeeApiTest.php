@@ -67,7 +67,7 @@ class MembershipFeeApiTest extends ApiTestCase
         $memberId = $members['member'][0]['id'];
 
         // Use a year that likely doesn't exist for this member (within 1900-2100 validation range)
-        $uniqueYear = 2050 + random_int(0, 9);
+        $uniqueYear = 2050 + random_int(0, 49);
 
         $response = $this->authenticatedRequest('POST', '/api/membership_fees', [
             'headers' => ['Content-Type' => 'application/ld+json'],

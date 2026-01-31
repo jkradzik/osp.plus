@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORY_LABELS = {
   osp: 'OSP',
@@ -8,6 +9,9 @@ const CATEGORY_LABELS = {
 };
 
 export function DecorationList() {
+  const { hasRole } = useAuth();
+  const canEdit = hasRole('ROLE_ADMIN') || hasRole('ROLE_PREZES');
+
   const [decorations, setDecorations] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [members, setMembers] = useState([]);
@@ -112,14 +116,16 @@ export function DecorationList() {
     <div className="decoration-list">
       <div className="list-header">
         <h2>Odznaczenia</h2>
-        <button onClick={() => setShowForm(!showForm)} className="btn btn-primary">
-          {showForm ? 'Anuluj' : 'Dodaj odznaczenie'}
-        </button>
+        {canEdit && (
+          <button onClick={() => setShowForm(!showForm)} className="btn btn-primary">
+            {showForm ? 'Anuluj' : 'Dodaj odznaczenie'}
+          </button>
+        )}
       </div>
 
       {error && <div className="error-message">{error}</div>}
 
-      {showForm && (
+      {showForm && canEdit && (
         <div className="member-form" style={{ marginBottom: '1.5rem' }}>
           <h3>Nowe odznaczenie</h3>
           <form onSubmit={handleSubmit}>
