@@ -25,8 +25,8 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(),
-        new Patch(),
+        new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_PREZES')"),
+        new Patch(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_PREZES')"),
         new Delete(security: "is_granted('ROLE_ADMIN')"),
     ],
     order: ['awardedAt' => 'DESC'],

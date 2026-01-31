@@ -140,9 +140,16 @@
 | 2.1 Endpoint summary | ✅ Zrobione | 2026-01-31 |
 | 2.2 Testy | ✅ Zrobione | 2026-01-31 |
 | 3.1-3.4 Frontend | ✅ Zrobione | 2026-01-31 |
-| 4.1-4.2 Role | ⏳ PÓŹNIEJ | - |
+| 4.1-4.2 Role | ✅ Zrobione | 2026-01-31 |
 
 ## 5. Changelog
+
+### 2026-01-31 (sesja 2)
+- ✅ Dodano hierarchię ról w security.yaml (ROLE_ADMIN > ROLE_PREZES/SKARBNIK/NACZELNIK > ROLE_USER)
+- ✅ Utworzono 5 Voterów: MemberVoter, MembershipFeeVoter, DecorationVoter, PersonalEquipmentVoter, FinancialRecordVoter
+- ✅ Zaktualizowano security w encjach API Platform zgodnie z tabelą uprawnień
+- ✅ Dodano użytkowników testowych: prezes@osp.plus, skarbnik@osp.plus, naczelnik@osp.plus
+- ✅ Wszystkie 97 testów przechodzi
 
 ### 2026-01-31 (sesja 1)
 - ✅ Utworzono enum FinancialType (income/expense)

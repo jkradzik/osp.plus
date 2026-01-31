@@ -12,7 +12,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api')]
-#[IsGranted('ROLE_USER')]
 class FinancialSummaryController extends AbstractController
 {
     public function __construct(
@@ -22,6 +21,14 @@ class FinancialSummaryController extends AbstractController
     #[Route('/financial-summary', name: 'api_financial_summary', methods: ['GET'])]
     public function summary(Request $request): JsonResponse
     {
+        // Check if user has access to view finances
+        if (!$this->isGranted('ROLE_ADMIN')
+            && !$this->isGranted('ROLE_PREZES')
+            && !$this->isGranted('ROLE_SKARBNIK')
+            && !$this->isGranted('ROLE_NACZELNIK')) {
+            throw $this->createAccessDeniedException();
+        }
+
         $year = $request->query->getInt('year') ?: null;
         $month = $request->query->getInt('month') ?: null;
 

@@ -59,7 +59,16 @@ export function LoginForm() {
       </form>
 
       <p className="demo-credentials">
-        Demo: admin@osp.plus / admin123
+        Demo:
+        <ul>
+          <li>admin@osp.plus / admin123 - Administrator</li>
+          <li>prezes@osp.plus / prezes123 - Prezes</li>
+          <li>skarbnik@osp.plus / skarbnik123 - Skarbnik</li>
+          <li>naczelnik@osp.plus / naczelnik123 - Naczelnik</li>
+          <li>user@osp.plus / user123 - Druh</li>
+        </ul>
+
+
       </p>
     </div>
   );

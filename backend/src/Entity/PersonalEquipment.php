@@ -25,9 +25,9 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(),
-        new Patch(),
-        new Delete(security: "is_granted('ROLE_ADMIN')"),
+        new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_NACZELNIK')"),
+        new Patch(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_NACZELNIK')"),
+        new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_NACZELNIK')"),
     ],
     order: ['issuedAt' => 'DESC'],
     paginationItemsPerPage: 20,

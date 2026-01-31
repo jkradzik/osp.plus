@@ -45,14 +45,30 @@ class AppFixtures extends Fixture implements DependentFixtureInterface
         $admin->email = 'admin@osp.plus';
         $admin->password = $this->passwordHasher->hashPassword($admin, 'admin123');
         $admin->roles = ['ROLE_ADMIN'];
-
         $manager->persist($admin);
+
+        $prezes = new User();
+        $prezes->email = 'prezes@osp.plus';
+        $prezes->password = $this->passwordHasher->hashPassword($prezes, 'prezes123');
+        $prezes->roles = ['ROLE_PREZES'];
+        $manager->persist($prezes);
+
+        $skarbnik = new User();
+        $skarbnik->email = 'skarbnik@osp.plus';
+        $skarbnik->password = $this->passwordHasher->hashPassword($skarbnik, 'skarbnik123');
+        $skarbnik->roles = ['ROLE_SKARBNIK'];
+        $manager->persist($skarbnik);
+
+        $naczelnik = new User();
+        $naczelnik->email = 'naczelnik@osp.plus';
+        $naczelnik->password = $this->passwordHasher->hashPassword($naczelnik, 'naczelnik123');
+        $naczelnik->roles = ['ROLE_NACZELNIK'];
+        $manager->persist($naczelnik);
 
         $user = new User();
         $user->email = 'user@osp.plus';
         $user->password = $this->passwordHasher->hashPassword($user, 'user123');
         $user->roles = ['ROLE_USER'];
-
         $manager->persist($user);
     }
 

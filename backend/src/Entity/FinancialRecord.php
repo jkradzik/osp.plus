@@ -25,11 +25,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
-        new GetCollection(),
-        new Get(),
-        new Post(),
-        new Patch(),
-        new Delete(security: "is_granted('ROLE_ADMIN')"),
+        new GetCollection(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_PREZES') or is_granted('ROLE_SKARBNIK') or is_granted('ROLE_NACZELNIK')"),
+        new Get(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_PREZES') or is_granted('ROLE_SKARBNIK') or is_granted('ROLE_NACZELNIK')"),
+        new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SKARBNIK')"),
+        new Patch(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SKARBNIK')"),
+        new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SKARBNIK')"),
     ],
     order: ['recordedAt' => 'DESC', 'createdAt' => 'DESC'],
     paginationItemsPerPage: 20,
