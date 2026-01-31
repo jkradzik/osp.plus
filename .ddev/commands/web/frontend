@@ -1,7 +1,7 @@
  #!/bin/bash
- ## Description: Run npm commands in frontend directory
- ## Usage: frontend [npm-command]
- ## Example: ddev frontend install
+ ## Description: Run commands in frontend directory
+ ## Usage: frontend [command]
+ ## Example: ddev frontend npm install
 
  cd /var/www/html/frontend
- npm "$@"
+ "$@"
