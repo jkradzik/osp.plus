@@ -115,9 +115,19 @@ class Member
     #[ORM\OneToMany(targetEntity: MembershipFee::class, mappedBy: 'member', cascade: ['persist', 'remove'], orphanRemoval: true)]
     public private(set) Collection $membershipFees;
 
+    /** @var Collection<int, Decoration> */
+    #[ORM\OneToMany(targetEntity: Decoration::class, mappedBy: 'member', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    public private(set) Collection $decorations;
+
+    /** @var Collection<int, PersonalEquipment> */
+    #[ORM\OneToMany(targetEntity: PersonalEquipment::class, mappedBy: 'member', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    public private(set) Collection $personalEquipment;
+
     public function __construct()
     {
         $this->membershipFees = new ArrayCollection();
+        $this->decorations = new ArrayCollection();
+        $this->personalEquipment = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
     }
 

@@ -19,6 +19,8 @@ export function Layout() {
         <nav className="header-nav">
           <Link to="/members">Członkowie</Link>
           <Link to="/fees">Składki</Link>
+          <Link to="/decorations">Odznaczenia</Link>
+          <Link to="/equipment">Wyposażenie</Link>
         </nav>
         <button onClick={handleLogout} className="btn btn-small">
           Wyloguj

@@ -155,6 +155,90 @@ class ApiService {
       },
     }).then(r => r.json());
   }
+
+  // Decorations
+  async getDecorations(params = {}) {
+    const queryString = this.#buildQueryString(params);
+    const data = await this.#request(`/api/decorations${queryString}`);
+    return {
+      items: data.member || data['hydra:member'] || [],
+      totalItems: data['hydra:totalItems'] || data.totalItems || 0,
+      view: data['hydra:view'] || data.view || null,
+    };
+  }
+
+  async getDecoration(id) {
+    return this.#request(`/api/decorations/${id}`);
+  }
+
+  async createDecoration(decoration) {
+    return this.#request('/api/decorations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/ld+json' },
+      body: JSON.stringify(decoration),
+    });
+  }
+
+  async updateDecoration(id, decoration) {
+    return this.#request(`/api/decorations/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+      body: JSON.stringify(decoration),
+    });
+  }
+
+  async deleteDecoration(id) {
+    return this.#request(`/api/decorations/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getDecorationTypes() {
+    const data = await this.#request('/api/decoration_dictionaries?order[sortOrder]=asc');
+    return data.member || data['hydra:member'] || [];
+  }
+
+  // Personal Equipment
+  async getEquipment(params = {}) {
+    const queryString = this.#buildQueryString(params);
+    const data = await this.#request(`/api/personal_equipments${queryString}`);
+    return {
+      items: data.member || data['hydra:member'] || [],
+      totalItems: data['hydra:totalItems'] || data.totalItems || 0,
+      view: data['hydra:view'] || data.view || null,
+    };
+  }
+
+  async getEquipmentItem(id) {
+    return this.#request(`/api/personal_equipments/${id}`);
+  }
+
+  async createEquipment(equipment) {
+    return this.#request('/api/personal_equipments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/ld+json' },
+      body: JSON.stringify(equipment),
+    });
+  }
+
+  async updateEquipment(id, equipment) {
+    return this.#request(`/api/personal_equipments/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+      body: JSON.stringify(equipment),
+    });
+  }
+
+  async deleteEquipment(id) {
+    return this.#request(`/api/personal_equipments/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getEquipmentTypes() {
+    const data = await this.#request('/api/equipment_dictionaries?order[name]=asc');
+    return data.member || data['hydra:member'] || [];
+  }
 }
 
 export const api = new ApiService();
